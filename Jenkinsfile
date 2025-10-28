@@ -23,7 +23,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building Java application with Maven...'
-                bat 'mvn clean package'
+                bat 'mvn clean compile package'
             }
         }
         
@@ -34,17 +34,18 @@ pipeline {
             }
         }
         
+        stage('Verify Build') {
+            steps {
+                echo 'Verifying JAR file contents...'
+                bat 'dir target\\*.jar'
+                bat 'jar tf target\\java-app-1.0-SNAPSHOT.jar'
+            }
+        }
+        
         stage('Execute Application') {
             steps {
                 echo 'Executing Java application...'
-                script {
-                    def jarFile = bat(script: '@dir /b /s target\\*.jar', returnStdout: true).trim()
-                    if (jarFile) {
-                        bat "java -jar ${jarFile}"
-                    } else {
-                        error "JAR file not found!"
-                    }
-                }
+                bat 'cd target\\classes && java com.example.App'
             }
         }
         
@@ -77,6 +78,8 @@ pipeline {
     post {
         success {
             echo 'Pipeline completed successfully!'
+            echo 'Build artifacts:'
+            bat 'dir target\\*.jar'
         }
         failure {
             echo 'Pipeline failed!'

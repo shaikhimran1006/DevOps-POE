@@ -39,13 +39,14 @@ pipeline {
                 echo 'Verifying JAR file contents...'
                 bat 'dir target\\*.jar'
                 bat 'jar tf target\\java-app-1.0-SNAPSHOT.jar'
+                bat 'dir target\\classes\\com\\example'
             }
         }
         
         stage('Execute Application') {
             steps {
                 echo 'Executing Java application...'
-                bat 'cd target\\classes && java com.example.App'
+                bat 'java -cp target\\classes com.example.App'
             }
         }
         

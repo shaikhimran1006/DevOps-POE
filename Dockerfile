@@ -1,4 +1,4 @@
-// filepath: Dockerfile
+# filepath: Dockerfile
 FROM openjdk:11-jre-slim
 
 WORKDIR /app

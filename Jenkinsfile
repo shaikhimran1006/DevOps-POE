@@ -1,3 +1,4 @@
+// filepath: Jenkinsfile
 pipeline {
     agent any
     
@@ -23,7 +24,7 @@ pipeline {
         stage('Build') {
             steps {
                 echo 'Building Java application with Maven...'
-                bat 'mvn clean compile package'
+                bat 'mvn clean package'
             }
         }
         
@@ -36,17 +37,8 @@ pipeline {
         
         stage('Verify Build') {
             steps {
-                echo 'Verifying JAR file contents...'
+                echo 'Verifying build artifacts...'
                 bat 'dir target\\*.jar'
-                bat 'jar tf target\\java-app-1.0-SNAPSHOT.jar'
-                bat 'dir target\\classes\\com\\example'
-            }
-        }
-        
-        stage('Execute Application') {
-            steps {
-                echo 'Executing Java application...'
-                bat 'java -cp target\\classes com.example.App'
             }
         }
         
@@ -60,6 +52,13 @@ pipeline {
             }
         }
         
+        stage('Test Docker Image') {
+            steps {
+                echo 'Testing Docker image...'
+                bat "docker run --rm ${DOCKER_IMAGE}:${DOCKER_TAG}"
+            }
+        }
+        
         stage('Push to Docker Hub') {
             steps {
                 echo 'Pushing Docker image to Docker Hub...'
@@ -69,7 +68,9 @@ pipeline {
                                                      passwordVariable: 'DOCKER_PASS')]) {
                         bat "docker login -u %DOCKER_USER% -p %DOCKER_PASS%"
                         bat "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} %DOCKER_USER%/${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        bat "docker tag ${DOCKER_IMAGE}:${DOCKER_TAG} %DOCKER_USER%/${DOCKER_IMAGE}:latest"
                         bat "docker push %DOCKER_USER%/${DOCKER_IMAGE}:${DOCKER_TAG}"
+                        bat "docker push %DOCKER_USER%/${DOCKER_IMAGE}:latest"
                     }
                 }
             }
@@ -78,12 +79,16 @@ pipeline {
     
     post {
         success {
+            echo '========================================='
             echo 'Pipeline completed successfully!'
-            echo 'Build artifacts:'
+            echo '========================================='
             bat 'dir target\\*.jar'
+            bat 'docker images | findstr java-app'
         }
         failure {
+            echo '========================================='
             echo 'Pipeline failed!'
+            echo '========================================='
         }
         always {
             echo 'Cleaning up workspace...'

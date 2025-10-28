@@ -78,21 +78,27 @@ pipeline {
     }
     
     post {
-        success {
-            echo '========================================='
-            echo 'Pipeline completed successfully!'
-            echo '========================================='
-            bat 'dir target\\*.jar'
-            bat 'docker images | findstr java-app'
-        }
-        failure {
-            echo '========================================='
-            echo 'Pipeline failed!'
-            echo '========================================='
-        }
-        always {
-            echo 'Cleaning up workspace...'
-            cleanWs()
+    success {
+        echo '========================================='
+        echo 'Pipeline completed successfully!'
+        echo '========================================='
+        script {
+            try {
+                bat 'dir target\\*.jar'
+                bat 'docker images | findstr java-app'
+            } catch (Exception e) {
+                echo 'Workspace already cleaned'
+            }
         }
     }
+    failure {
+        echo '========================================='
+        echo 'Pipeline failed!'
+        echo '========================================='
+    }
+    always {
+        echo 'Cleaning up workspace...'
+        cleanWs()
+    }
+}
 }

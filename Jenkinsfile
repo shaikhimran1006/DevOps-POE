@@ -3,7 +3,7 @@ pipeline {
     
     tools {
         maven 'Maven 3.9.9'  // Changed to match Jenkins configuration
-        jdk 'jdk-17'            // Changed to match Jenkins configuration
+        jdk 'jdk-20'            // Changed to match Jenkins configuration
     }
     
     environment {

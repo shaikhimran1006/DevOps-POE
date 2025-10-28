@@ -2,12 +2,14 @@ pipeline {
     agent any
     
     tools {
-        maven 'Maven 3.9.9'  // Changed to match Jenkins configuration            // Changed to match Jenkins configuration
+        maven 'Maven 3.9.9'
     }
     
     environment {
         DOCKER_IMAGE = 'java-app'
         DOCKER_TAG = "${BUILD_NUMBER}"
+        JAVA_HOME = 'C:\\Program Files\\Java\\jdk-17'
+        PATH = "${env.JAVA_HOME}\\bin;${env.PATH}"
     }
     
     stages {
@@ -35,7 +37,14 @@ pipeline {
         stage('Execute Application') {
             steps {
                 echo 'Executing Java application...'
-                bat 'java -jar target\\*.jar'
+                script {
+                    def jarFile = bat(script: '@dir /b /s target\\*.jar', returnStdout: true).trim()
+                    if (jarFile) {
+                        bat "java -jar ${jarFile}"
+                    } else {
+                        error "JAR file not found!"
+                    }
+                }
             }
         }
         
